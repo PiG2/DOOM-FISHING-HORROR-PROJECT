@@ -13,6 +13,9 @@ class Player:
         self.height = PLAYER_HEIGHT
         self.floor_height = 0
         self.z_vel = 0
+        self.radius = 16
+        self.linedefs = engine.wad_data.linedefs
+        self.vertexes = engine.wad_data.vertexes
 
     def update(self):
         self.get_height()
@@ -52,4 +55,7 @@ class Player:
             inc *= self.DIAG_MOVE_CORR
 
         inc.rotate_ip(self.angle)
+        print(inc)
         self.pos += inc
+
+        new_pos = self.pos + inc
