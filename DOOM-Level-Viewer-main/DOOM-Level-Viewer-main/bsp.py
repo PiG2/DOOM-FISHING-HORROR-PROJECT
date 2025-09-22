@@ -33,6 +33,22 @@ class BSP:
         seg = self.segs[sub_sector.first_seg_id]
         return seg.front_sector.floor_height
 
+    def get_sub_sector_ceiling_height(self):
+        sub_sector_id = self.root_node_id
+
+        while not sub_sector_id >= self.SUB_SECTOR_IDENTIFIER:
+            node = self.nodes[sub_sector_id]
+
+            is_on_back = self.is_on_back_side(node)
+            if is_on_back:
+                sub_sector_id = self.nodes[sub_sector_id].back_child_id
+            else:
+                sub_sector_id = self.nodes[sub_sector_id].front_child_id
+
+        sub_sector = self.sub_sectors[sub_sector_id - self.SUB_SECTOR_IDENTIFIER]
+        seg = self.segs[sub_sector.first_seg_id]
+        return seg.front_sector.ceil_height
+
     @staticmethod
     def angle_to_x(angle):
         if angle > 0:
