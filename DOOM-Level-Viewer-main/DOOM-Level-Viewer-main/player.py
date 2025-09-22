@@ -14,8 +14,6 @@ class Player:
         self.floor_height = 0
         self.z_vel = 0
         self.radius = 16
-
-        # Tracking linedefs and vertexes
         self.linedefs = engine.wad_data.linedefs
         self.vertexes = engine.wad_data.vertexes
 
@@ -61,15 +59,12 @@ class Player:
         if not self.check_collision(new_pos):
             self.pos = new_pos
         else:
-            # Try sliding collision response
             self.try_slide_movement(inc)
 
     def check_collision(self, new_pos):
-        """Check collision with walls and blocking linedefs"""
         for linedef in self.linedefs:
-            # Skip non-blocking linedefs (doorways, etc.)
-            if (linedef.back_sidedef_id != 0xFFFF and 
-                not (linedef.flags & self.engine.wad_data.LINEDEF_FLAGS['BLOCKING'])):
+            if (linedef.back_sidedef_id != 0xFFFF and # uh-huh
+                not (linedef.flags & self.engine.wad_data.LINEDEF_FLAGS['BLOCKING'])): # yep
                 continue
             
             v1 = self.vertexes[linedef.start_vertex_id]
@@ -81,7 +76,6 @@ class Player:
         return False
 
     def check_collision_with_margin(self, new_pos, margin=2):
-        """Check collision with a safety margin"""
         for linedef in self.linedefs:
             if (linedef.back_sidedef_id != 0xFFFF and 
                 not (linedef.flags & self.engine.wad_data.LINEDEF_FLAGS['BLOCKING'])):
@@ -96,8 +90,6 @@ class Player:
         return False
 
     def point_to_line_distance(self, point, line_start, line_end):
-        """Calculate shortest distance from point to line segment"""
-        # Vector from line start to end
         line_vec = vec2(line_end.x - line_start.x, line_end.y - line_start.y)
         line_length_sq = line_vec.length_squared()
 
@@ -111,31 +103,26 @@ class Player:
         return point.distance_to(closest_point)
 
     def try_slide_movement(self, movement):
-        """Try to slide along walls when collision is detected"""
-        # Try X movement only
         x_movement = vec2(movement.x, 0)
         x_pos = self.pos + x_movement
         if not self.check_collision(x_pos):
             self.pos = x_pos
             return
         
-        # Try Y movement only
         y_movement = vec2(0, movement.y)
         y_pos = self.pos + y_movement
         if not self.check_collision(y_pos):
             self.pos = y_pos
             return
 
+    # voodoo magic shit
     def check_sector_collision(self, new_pos):
-        """Check if player can move to new position based on sector heights"""
-        # Get current and target sector heights
         current_sector = self.engine.bsp.get_sub_sector(self.pos)
         target_sector = self.engine.bsp.get_sub_sector(new_pos)
         
         if target_sector:
             height_diff = target_sector.floor_height - current_sector.floor_height
-            # Prevent movement if height difference is too large (like a wall)
-            if height_diff > 24:  # DOOM's step height limit
+            if height_diff > 24:  
                 return True
         
         return False
