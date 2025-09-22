@@ -16,4 +16,6 @@ PLAYER_HEIGHT = 41
 
 SCREEN_DIST = H_WIDTH / math.tan(math.radians(H_FOV))
 
+MOUSE_SENSITIVITY = 0.3
+
 COLOR_KEY = (152, 0, 136)

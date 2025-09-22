@@ -34,10 +34,9 @@ class Player:
         rot_speed = PLAYER_ROT_SPEED * self.engine.dt
 
         key_state = pg.key.get_pressed()
-        if key_state[pg.K_LEFT]:
-            self.angle += rot_speed
-        if key_state[pg.K_RIGHT]:
-            self.angle -= rot_speed
+        mouse_rel =pg.mouse.get_rel()
+        self.angle -= mouse_rel[0] *MOUSE_SENSITIVITY
+
 
         inc = vec2(0)
         if key_state[pg.K_a]:
