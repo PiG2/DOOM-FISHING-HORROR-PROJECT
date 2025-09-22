@@ -39,9 +39,8 @@ class Player:
         rot_speed = PLAYER_ROT_SPEED * self.engine.dt
 
         key_state = pg.key.get_pressed()
-        mouse_rel =pg.mouse.get_rel()
-        self.angle -= mouse_rel[0] *MOUSE_SENSITIVITY
-
+        mouse_rel = pg.mouse.get_rel()
+        self.angle -= mouse_rel[0] * MOUSE_SENSITIVITY
 
         inc = vec2(0)
         if key_state[pg.K_a]:
@@ -57,7 +56,86 @@ class Player:
             inc *= self.DIAG_MOVE_CORR
 
         inc.rotate_ip(self.angle)
-        print(inc)
-        self.pos += inc
 
         new_pos = self.pos + inc
+        if not self.check_collision(new_pos):
+            self.pos = new_pos
+        else:
+            # Try sliding collision response
+            self.try_slide_movement(inc)
+
+    def check_collision(self, new_pos):
+        """Check collision with walls and blocking linedefs"""
+        for linedef in self.linedefs:
+            # Skip non-blocking linedefs (doorways, etc.)
+            if (linedef.back_sidedef_id != 0xFFFF and 
+                not (linedef.flags & self.engine.wad_data.LINEDEF_FLAGS['BLOCKING'])):
+                continue
+            
+            v1 = self.vertexes[linedef.start_vertex_id]
+            v2 = self.vertexes[linedef.end_vertex_id]
+
+            if self.point_to_line_distance(new_pos, v1, v2) < self.radius:
+                return True  
+
+        return False
+
+    def check_collision_with_margin(self, new_pos, margin=2):
+        """Check collision with a safety margin"""
+        for linedef in self.linedefs:
+            if (linedef.back_sidedef_id != 0xFFFF and 
+                not (linedef.flags & self.engine.wad_data.LINEDEF_FLAGS['BLOCKING'])):
+                continue
+            
+            v1 = self.vertexes[linedef.start_vertex_id]
+            v2 = self.vertexes[linedef.end_vertex_id]
+
+            if self.point_to_line_distance(new_pos, v1, v2) < self.radius + margin:
+                return True  
+
+        return False
+
+    def point_to_line_distance(self, point, line_start, line_end):
+        """Calculate shortest distance from point to line segment"""
+        # Vector from line start to end
+        line_vec = vec2(line_end.x - line_start.x, line_end.y - line_start.y)
+        line_length_sq = line_vec.length_squared()
+
+        if line_length_sq == 0:
+            return point.distance_to(vec2(line_start.x, line_start.y))
+
+        point_vec = vec2(point.x - line_start.x, point.y - line_start.y)
+        t = max(0, min(1, point_vec.dot(line_vec) / line_length_sq))
+        closest_point = vec2(line_start.x, line_start.y) + t * line_vec
+
+        return point.distance_to(closest_point)
+
+    def try_slide_movement(self, movement):
+        """Try to slide along walls when collision is detected"""
+        # Try X movement only
+        x_movement = vec2(movement.x, 0)
+        x_pos = self.pos + x_movement
+        if not self.check_collision(x_pos):
+            self.pos = x_pos
+            return
+        
+        # Try Y movement only
+        y_movement = vec2(0, movement.y)
+        y_pos = self.pos + y_movement
+        if not self.check_collision(y_pos):
+            self.pos = y_pos
+            return
+
+    def check_sector_collision(self, new_pos):
+        """Check if player can move to new position based on sector heights"""
+        # Get current and target sector heights
+        current_sector = self.engine.bsp.get_sub_sector(self.pos)
+        target_sector = self.engine.bsp.get_sub_sector(new_pos)
+        
+        if target_sector:
+            height_diff = target_sector.floor_height - current_sector.floor_height
+            # Prevent movement if height difference is too large (like a wall)
+            if height_diff > 24:  # DOOM's step height limit
+                return True
+        
+        return False
