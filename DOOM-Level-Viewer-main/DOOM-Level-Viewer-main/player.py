@@ -14,6 +14,8 @@ class Player:
         self.floor_height = 0
         self.z_vel = 0
         self.radius = 16
+
+        # Tracking linedefs and vertexes
         self.linedefs = engine.wad_data.linedefs
         self.vertexes = engine.wad_data.vertexes
 
