@@ -1,3 +1,9 @@
-DOOM level viewer is written in Python using Pygame and Numba libraries. Tested with WAD files for DOOM1 and DOOM2
+# DOOM HORROR FISHING GAME
 
+### This is built using a bastardized version of someone's DOOM python renderer.
 ![doom](/sreenshots/0.jpg)
+
+Todo:
+
+        - Add fishing pole
+        - Get first map in (hurry pig)
