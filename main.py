@@ -1,5 +1,6 @@
 from wad_data import WADData
 from settings import *
+from wad_reader import WADReader
 import pygame as pg
 import sys
 from map_renderer import MapRenderer
@@ -20,7 +21,14 @@ class DoomEngine:
         self.on_init()
 
     def on_init(self):
-        self.wad_data = WADData(self, map_name='E1M2')
+        # this reader is just to print the lumps in the WAD file
+        reader = WADReader(self.wad_path)
+        print(f"WAD has {len(reader.directory)} lumps:") # engine is expecting 11 lumps min
+        for i, lump in enumerate(reader.directory):
+            print(f"  {i}: {lump['lump_name']} (size: {lump['lump_size']})")
+        reader.close()
+        
+        self.wad_data = WADData(self, map_name='E1M1')
         self.map_renderer = MapRenderer(self)
         self.player = Player(self)
         self.bsp = BSP(self)
